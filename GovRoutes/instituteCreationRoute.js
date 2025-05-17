@@ -2,6 +2,7 @@ const express = require("express");
 const { get } = require("mongoose");
 const router = express.Router();
 const { createInstitute } = require("../UserControllers/signupController");
+const govtComplainDisplay = require("../UserControllers/complainDisplay");
 router
   .route("/create/institute")
   .get((req, res) => {
@@ -11,4 +12,6 @@ router
   })
   .post(createInstitute);
 router.route("/institute/creation").post(createInstitute);
+
+router.route("/complains").post(govtComplainDisplay);
 module.exports = router;
