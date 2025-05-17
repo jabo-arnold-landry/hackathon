@@ -25,8 +25,8 @@ const userSchema = new mongoose.Schema(
     ],
     roles: {
       type: String,
-      enum: ["user", "admin", "govmentAgent"],
-      default: "user",
+      enum: ["citizen", "admin", "govmentAgent"],
+      default: "citizen",
     },
   },
   { timestamps: true }
@@ -70,14 +70,17 @@ const govIinstitute = new mongoose.Schema(
   {
     instituteName: {
       type: String,
+      unique: true,
       required: true,
       trim: true,
     },
-    complains: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Complains",
-      required: true,
-    },
+    complains: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Complains",
+        required: true,
+      },
+    ],
   },
   { timestamps: true }
 );

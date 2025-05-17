@@ -23,22 +23,24 @@ const login = async (req, res) => {
         .status(400)
         .json({ message: "fill in the empty fields to continue!" });
     }
-    const findUser = await User.findOne({ email });
-    if (findUser && (await bcrypt.compare(password, findUser.password))) {
+    const foundUser = await User.findOne({ email });
+    if (foundUser && (await bcrypt.compare(password, foundUser.password))) {
       const token = jwt.sign(
         {
           userInfo: {
-            name: findUser.names,
-            email: findUser.email,
-            role: findUser.roles,
+            id: foundUser._id,
+            name: foundUser.names,
+            email: foundUser.email,
+            role: foundUser.roles,
           },
         },
-        process.env.SCREAT_WORD,
+        process.env.JWT_WORD,
         { expiresIn: "24h" }
       );
+
       return res.status(200).json({ message: token });
     } else {
-      return res.statu(401).json({
+      return res.status(401).json({
         message: "user email or password is incorrect verify and try agin",
       });
     }
@@ -46,4 +48,13 @@ const login = async (req, res) => {
     console.log(err);
   }
 };
-module.exports = { createAccount, login };
+const createInstitute = async (req, res) => {
+  const { instituteName } = req.body;
+  if (!instituteName)
+    return res.status(400).json({ message: "input required" });
+  const instituteCreation = await GovInstitute.create({ instituteName });
+  res
+    .status(201)
+    .json({ message: `${instituteCreation.instituteName}created successfuly` });
+};
+module.exports = { createAccount, login, createInstitute };
