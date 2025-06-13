@@ -35,10 +35,10 @@ const login = async (req, res) => {
           },
         },
         process.env.JWT_WORD,
-        { expiresIn: "24h" }
+        { expiresIn: "1h" }
       );
 
-      return res.status(200).json({ message: token });
+      return res.status(200).json({ token });
     } else {
       return res.status(401).json({
         message: "user email or password is incorrect verify and try agin",
