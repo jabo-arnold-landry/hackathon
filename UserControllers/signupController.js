@@ -26,7 +26,7 @@ function accessToken(user) {
       },
     },
     process.env.JWT_WORD,
-    { expiresIn: "4s" }
+    { expiresIn: "1ms" }
   );
 }
 function refrestToken(user) {
@@ -40,7 +40,7 @@ function refrestToken(user) {
       },
     },
     process.env.REFRESH_TOKEN,
-    { expiresIn: "15s" }
+    { expiresIn: "2m" }
   );
 }
 const login = async (req, res) => {
@@ -58,9 +58,15 @@ const login = async (req, res) => {
       await RefreshToken.create({
         owner: foundUser._id,
         token: refreshedToken,
-        expiresAt: new Date(Date.now() + 15 * 1000),
+        expiresAt: new Date(Date.now() + 2 * 60 * 1000),
         userAgent: req.headers["user-agent"],
         ip: req.ip,
+      });
+      res.cookie("jwt", refreshedToken, {
+        httpOnly: true, //makes inaccessible in javascript console
+        secure: true, //makes it secure
+        sameSite: "None", // allows cross-site origin
+        maxAge: 2 * 60 * 1000,
       });
       return res.status(200).json({ token, refreshedToken });
     } else {
@@ -80,5 +86,14 @@ const createInstitute = async (req, res) => {
   res
     .status(201)
     .json({ message: `${instituteCreation.instituteName}created successfuly` });
+};
+const refreshMethod = (req, res) => {
+  const cookies = req.cookies.jwt;
+  if (!cookies) return res.status(401).json({ message: "unauthorized!" });
+  const refreshToken = cookies;
+  jwt.verify(refreshToken, async (err, decodedToken) => {
+    if (err) return res.status(401).json({ message: "unauthorized" });
+    const foundUser = await User.findOne({ email: decodedToken.email });
+  });
 };
 module.exports = { createAccount, login, createInstitute };
