@@ -17,6 +17,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.3",
     "moongoose": "^0.0.5",
-    "nodemon": "^3.1.10"
+    "nodemailer": "^7.0.3",
+    "nodemon": "^3.1.10",
+    "pino": "^9.7.0"
   }
 }

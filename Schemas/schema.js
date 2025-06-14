@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      select: false,
     },
     complains: [
       {
@@ -32,6 +33,30 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 const User = mongoose.model("User", userSchema);
+const refreshToken = new mongoose.Schema(
+  {
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    token: {
+      type: String,
+      required: true,
+    },
+    expiresAt: {
+      type: Date,
+      required: true,
+    },
+    userAgent: {
+      type: String,
+    },
+    ip: {
+      type: String,
+    },
+  },
+  { timestamps: true }
+);
+const RefreshToken = mongoose.model("RefreshToken", refreshToken);
 const complainSchema = new mongoose.Schema(
   {
     complTitle: {
@@ -85,4 +110,4 @@ const govIinstitute = new mongoose.Schema(
   { timestamps: true }
 );
 const GovInstitute = mongoose.model("GovInstitute", govIinstitute);
-module.exports = { User, Complain, GovInstitute };
+module.exports = { User, Complain, GovInstitute, RefreshToken };
