@@ -26,10 +26,10 @@ function accessToken(user) {
       },
     },
     process.env.JWT_WORD,
-    { expiresIn: "1ms" }
+    { expiresIn: "1m" }
   );
 }
-function refrestToken(user) {
+function refreshToken(user) {
   return jwt.sign(
     {
       userInfo: {
@@ -40,7 +40,7 @@ function refrestToken(user) {
       },
     },
     process.env.REFRESH_TOKEN,
-    { expiresIn: "2m" }
+    { expiresIn: "1d" }
   );
 }
 const login = async (req, res) => {
@@ -54,7 +54,7 @@ const login = async (req, res) => {
     const foundUser = await User.findOne({ email });
     if (foundUser && (await bcrypt.compare(password, foundUser.password))) {
       const token = accessToken(foundUser);
-      const refreshedToken = refrestToken(foundUser);
+      const refreshedToken = refreshToken(foundUser);
       await RefreshToken.create({
         owner: foundUser._id,
         token: refreshedToken,
@@ -64,9 +64,9 @@ const login = async (req, res) => {
       });
       res.cookie("jwt", refreshedToken, {
         httpOnly: true, //makes inaccessible in javascript console
-        secure: true, //makes it secure
+        secure: false, //makes it secure
         sameSite: "None", // allows cross-site origin
-        maxAge: 2 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       return res.status(200).json({ token, refreshedToken });
     } else {
@@ -87,13 +87,42 @@ const createInstitute = async (req, res) => {
     .status(201)
     .json({ message: `${instituteCreation.instituteName}created successfuly` });
 };
-const refreshMethod = (req, res) => {
+const refreshMethod = async (req, res) => {
   const cookies = req.cookies.jwt;
+  console.log(cookies);
   if (!cookies) return res.status(401).json({ message: "unauthorized!" });
   const refreshToken = cookies;
-  jwt.verify(refreshToken, async (err, decodedToken) => {
-    if (err) return res.status(401).json({ message: "unauthorized" });
-    const foundUser = await User.findOne({ email: decodedToken.email });
-  });
+  let payload;
+  //getting the user data from the payload in refresh token created
+  try {
+    payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
+  } catch (err) {
+    console.log(err);
+    return res.status(401).json({ message: "the session expired" });
+  }
+  //validtchromeing if the token is valid and issued by our server
+  const checkIssuedToken = await RefreshToken.findOne({ token: refreshToken });
+  if (!checkIssuedToken)
+    return res.status(403).json({ message: "the token is not valid" });
+  if (checkIssuedToken.expiresAt < new Date()) {
+    await RefreshToken.deleteOne({ token: checkIssuedToken._id });
+    return res.status(403).json({ message: "the token has expired" });
+  }
+  const user = await User.findOne({ email: payload.userInfo.email });
+  accessToken(user);
 };
-module.exports = { createAccount, login, createInstitute };
+const logout = (req, res) => {
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
+  res.status(200).json({ message: "logged out" });
+};
+module.exports = {
+  createAccount,
+  login,
+  createInstitute,
+  refreshMethod,
+  logout,
+};
