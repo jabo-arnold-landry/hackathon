@@ -1,10 +1,13 @@
 const { User, RefreshToken, GovInstitute } = require("../Schemas/schema");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const createAccount = async (req, res) => {
+const errorHandler = require("../middlewares/errorHandler");
+const createAccount = async (req, res, next) => {
   const { names, email, password } = req.body;
   if (!names || !email || !password) {
-    return res.status(400).json({ message: "all fields are mandatory!" });
+    const err = new Error("fill in the empty fields to continue!");
+    err.statusCode = 400;
+    return next(err);
   }
   const hashedPassword = await bcrypt.hash(password, 10);
   const userCreation = await User.create({
@@ -43,39 +46,37 @@ function refreshToken(user) {
     { expiresIn: "1d" }
   );
 }
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "fill in the empty fields to continue!" });
-    }
-    const foundUser = await User.findOne({ email });
-    if (foundUser && (await bcrypt.compare(password, foundUser.password))) {
-      const token = accessToken(foundUser);
-      const refreshedToken = refreshToken(foundUser);
-      await RefreshToken.create({
-        owner: foundUser._id,
-        token: refreshedToken,
-        expiresAt: new Date(Date.now() + 2 * 60 * 1000),
-        userAgent: req.headers["user-agent"],
-        ip: req.ip,
-      });
-      res.cookie("jwt", refreshedToken, {
-        httpOnly: true, //makes inaccessible in javascript console
-        secure: false, //makes it secure
-        sameSite: "None", // allows cross-site origin
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-      return res.status(200).json({ token, refreshedToken });
-    } else {
-      return res.status(401).json({
-        message: "user email or password is incorrect verify and try agin",
-      });
-    }
-  } catch (err) {
-    console.log(err);
+const login = async (req, res, next) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    const err = new Error("fill in the empty fields to continue!");
+    err.statusCode = 400;
+    return next(err);
+  }
+  const foundUser = await User.findOne({ email });
+  if (foundUser && (await bcrypt.compare(password, foundUser.password))) {
+    const token = accessToken(foundUser);
+    const refreshedToken = refreshToken(foundUser);
+    await RefreshToken.create({
+      owner: foundUser._id,
+      token: refreshedToken,
+      expiresAt: new Date(Date.now() + 2 * 60 * 1000),
+      userAgent: req.headers["user-agent"],
+      ip: req.ip,
+    });
+    res.cookie("jwt", refreshedToken, {
+      httpOnly: true, //makes inaccessible in javascript console
+      secure: false, //makes it secure
+      sameSite: "None", // allows cross-site origin
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return res.status(200).json({ token, refreshedToken });
+  } else {
+    const err = new Error(
+      "user email or password is incorrect verify and try agin"
+    );
+    err.statusCode = 401;
+    return next(err);
   }
 };
 const createInstitute = async (req, res) => {

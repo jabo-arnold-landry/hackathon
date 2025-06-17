@@ -3,6 +3,7 @@ const env = require("dotenv").config();
 //getting the connection and connecting to a db
 const dbConnection = require("./config/dbconnection");
 const cookieParser = require("cookie-parser");
+const errHandler = require("./middlewares/errorHandler");
 const cors = require("cors");
 //establishing the connection
 dbConnection();
@@ -23,6 +24,7 @@ app.use("/credentials", require("./UserRoutes/AuthanticationRoutes"));
 app.use("/citizen-complain", require("./UserRoutes/complainRoute"));
 //institute routes middleware
 app.use("/instititutes", require("./GovRoutes/instituteCreationRoute"));
+app.use(errHandler);
 app.listen(port, () => {
   console.log("the server is running");
 });
