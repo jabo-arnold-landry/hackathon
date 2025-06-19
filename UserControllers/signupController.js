@@ -1,11 +1,15 @@
 const { User, RefreshToken, GovInstitute } = require("../Schemas/schema");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const errorHandler = require("../middlewares/errorHandler");
 const createAccount = async (req, res, next) => {
   const { names, email, password } = req.body;
+  const user = await User.findOne({ email });
   if (!names || !email || !password) {
     const err = new Error("fill in the empty fields to continue!");
+    err.statusCode = 400;
+    return next(err);
+  } else if (user) {
+    const err = new Error("the user is already registered!");
     err.statusCode = 400;
     return next(err);
   }
@@ -14,7 +18,6 @@ const createAccount = async (req, res, next) => {
     names,
     email,
     password: hashedPassword,
-    roles: req.body.roles,
   });
   res.status(201).json({ message: `welcome ${userCreation.names}!` });
 };
@@ -70,7 +73,7 @@ const login = async (req, res, next) => {
       sameSite: "None", // allows cross-site origin
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return res.status(200).json({ token, refreshedToken });
+    return res.status(200).json({ token, refreshedToken, role:foundUser.roles});
   } else {
     const err = new Error(
       "user email or password is incorrect verify and try agin"

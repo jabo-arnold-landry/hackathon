@@ -15,10 +15,11 @@ app.use(express.urlencoded({ extends: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "*",
+    origin: "http://localhost:5173",
+    credentials: true,
   })
 );
-//user login routes middleware
+//user authantication and registering routes middleware
 app.use("/credentials", require("./UserRoutes/AuthanticationRoutes"));
 //complain routes middleware
 app.use("/citizen-complain", require("./UserRoutes/complainRoute"));
