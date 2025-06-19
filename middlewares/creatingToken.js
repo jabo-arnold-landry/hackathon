@@ -8,7 +8,9 @@ const authanticatecaUser = (req, res, next) => {
       if (parts.length === 2 && parts[0] === "Bearer") {
         token = parts[1];
       } else {
-        return res.status(401).json({ message: "malformed token" });
+        const err = new Error();
+        err.stausCode = 401;
+        return next(err);
       }
       const decodedToken = jwt.verify(token, process.env.JWT_WORD);
       req.user = decodedToken.userInfo;
@@ -19,7 +21,9 @@ const authanticatecaUser = (req, res, next) => {
       return res.status(401).json({ message: "the session expired" });
     }
   } else {
-    return res.status(401).json({ message: "invalid signup" });
+    const err = new Error("invalid signup");
+    err.statusCode = 401;
+    return next(err);
   }
 };
 module.exports = authanticatecaUser;
