@@ -8,13 +8,12 @@ const {
   logout,
 } = require("../UserControllers/signupController");
 router
-  .route("/create/new/account")
+  .route("/user-Auth/signup")
   .get((req, res) => {
     res
       .status(200)
       .json({ message: "welcome back, you are in the right place!!" });
-  })
-  .post(createAccount);
+  }).post(createAccount);
 router.route("/user-Auth/login").post(login);
 router.route("/refresh").get(refreshMethod);
 router.route("/logout").get(logout);
