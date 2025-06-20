@@ -23,6 +23,12 @@ const userSchema = new mongoose.Schema(
         ref: "Complain",
       },
     ],
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
+      },
+    ],
     roles: {
       type: String,
       enum: ["citizen", "admin", "govmentAgent"],
@@ -80,6 +86,13 @@ const complainSchema = new mongoose.Schema(
       ref: "GovInstitute",
       required: true,
     },
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
+        required: true,
+      },
+    ],
     status: {
       type: String,
       enum: ["sent", "responded"],
@@ -89,7 +102,27 @@ const complainSchema = new mongoose.Schema(
   { timestamps: true }
 );
 const Complain = mongoose.model("Complain", complainSchema);
-
+const commentSchema = new mongoose.Schema(
+  {
+    complainId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Complain",
+      required: true,
+    },
+    commentedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
+    comment: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  { timestamps: true }
+);
+const Comment = mongoose.model("Comment", commentSchema);
 const govIinstitute = new mongoose.Schema(
   {
     instituteName: {
@@ -109,4 +142,4 @@ const govIinstitute = new mongoose.Schema(
   { timestamps: true }
 );
 const GovInstitute = mongoose.model("GovInstitute", govIinstitute);
-module.exports = { User, Complain, GovInstitute, RefreshToken };
+module.exports = { User, Complain, GovInstitute, RefreshToken, Comment };

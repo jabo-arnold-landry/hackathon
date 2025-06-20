@@ -32,7 +32,7 @@ function accessToken(user) {
       },
     },
     process.env.JWT_WORD,
-    { expiresIn: "1m" }
+    { expiresIn: "1d" }
   );
 }
 function refreshToken(user) {
@@ -73,7 +73,9 @@ const login = async (req, res, next) => {
       sameSite: "None", // allows cross-site origin
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return res.status(200).json({ token, refreshedToken, role:foundUser.roles});
+    return res
+      .status(200)
+      .json({ token, refreshedToken, role: foundUser.roles });
   } else {
     const err = new Error(
       "user email or password is incorrect verify and try agin"
