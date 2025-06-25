@@ -12,7 +12,13 @@ const govtComplainDisplay = async (req, res) => {
       select: "names email",
     },
   });
-  console.log(findInstitute);
   res.json({ message: findInstitute });
 };
-module.exports = govtComplainDisplay;
+const displayComplain = async (req, res, next) => {
+  const complains = await Complain.find({});
+  if (complains) return res.status(200).json({ message: complains });
+  const error = new Error("unexpected error occures");
+  error.statusCode = 500;
+  return next(error);
+};
+module.exports = { govtComplainDisplay, displayComplain };

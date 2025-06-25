@@ -2,7 +2,7 @@ const express = require("express");
 const { get } = require("mongoose");
 const router = express.Router();
 const { createInstitute } = require("../UserControllers/signupController");
-const govtComplainDisplay = require("../UserControllers/complainDisplay");
+const { govtComplainDisplay } = require("../UserControllers/complainDisplay");
 router
   .route("/create/institute")
   .get((req, res) => {

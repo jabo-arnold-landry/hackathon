@@ -21,7 +21,8 @@ const createAccount = async (req, res, next) => {
   });
   res.status(201).json({ message: `welcome ${userCreation.names}!` });
 };
-function accessToken(user) {
+
+function token(user, expDate = "15m", envFile) {
   return jwt.sign(
     {
       userInfo: {
@@ -31,22 +32,8 @@ function accessToken(user) {
         role: user.roles,
       },
     },
-    process.env.JWT_WORD,
-    { expiresIn: "1d" }
-  );
-}
-function refreshToken(user) {
-  return jwt.sign(
-    {
-      userInfo: {
-        id: user._id,
-        name: user.names,
-        email: user.email,
-        role: user.roles,
-      },
-    },
-    process.env.REFRESH_TOKEN,
-    { expiresIn: "1d" }
+    envFile,
+    { expiresIn: expDate }
   );
 }
 const login = async (req, res, next) => {
@@ -58,8 +45,8 @@ const login = async (req, res, next) => {
   }
   const foundUser = await User.findOne({ email });
   if (foundUser && (await bcrypt.compare(password, foundUser.password))) {
-    const token = accessToken(foundUser);
-    const refreshedToken = refreshToken(foundUser);
+    const token = token(foundUser, process.env.JWT_WORD);
+    const refreshedToken = token(foundUser, "30d", process.env.REFRESH_TOKEN);
     await RefreshToken.create({
       owner: foundUser._id,
       token: refreshedToken,
